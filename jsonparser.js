@@ -125,11 +125,19 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
                         result += char; //add character to result
                         i++; //advance index
                     }
-                    //still need case for u (hexidecimal 4 digits)
+                    //case for \uXXXX (hexidecimal 4 digits)
                     else if (char === "u"){
-                        //TODO Handle hex
-                        // isHex(str[i + x])
-                        isHex()
+                        
+                        if ( //Checking the hex values are valid following the \u escape
+                            isHex(str[i+2]) &&
+                            isHex(str[i+3]) &&
+                            isHex(str[i+4]) &&
+                            isHex(str[i+5]) 
+                        )
+                        //Extracts hex code, converts into decimal integer,then into string. finally puts into result variable
+                        result += String.fromCharCode(parseInt(str.slice(i+2,i+6),16)); 
+                        i+=5; //Updates i to the end of hex code 
+                        
                     }
                 }
                 else{ //If not special case
