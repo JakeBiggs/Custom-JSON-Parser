@@ -68,6 +68,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
         }
     }
 
+    //Based on diagram found at https://www.json.org/img/value.png
     function parseValue(){
         //A value starts with "whitespace", 
         skipWS();
@@ -97,12 +98,60 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
 
     //Checks whether current str.slice(i) matches the key string, if so it will return keyword's value.
     function parseKeyword(name,value){ 
-        if (str.slice(i,i+ name.length) === name){
+        if (str.slice(i,i+ name.length) === name){ 
             i+= name.length;
             return value;
         }
     }
 
+    //Based on diagram found at https://www.json.org/img/string.png
+    function parseString(){ 
+        if (str[i] === '"') {
+            i++;
+            let result = "";
+
+            while (str[i] !== '"') {//'"' being end of string
+                if(str[i]==="\\"){
+                    const char = str[i+1]; //Skips double reverse solidus
+                    if (char ==='"' ||
+                        char ==="\\"||
+                        char ==="/"||
+                        char ==="b"|| //backspace
+                        char ==="f"|| //formfeed (next page)
+                        char ==="n"|| //linefeed
+                        char ==="r"|| //carriage return
+                        char ==="t" //horizontal tab
+                    ){
+                        result += char; //add character to result
+                        i++; //advance index
+                    }
+                    //still need case for u (hexidecimal 4 digits)
+                    else if (char === "u"){
+                        //TODO Handle hex
+                        // isHex(str[i + x])
+                        isHex()
+                    }
+                }
+                else{ //If not special case
+                    result += str[i] //Append current i to result
+                    i++; //Advance
+                }
+                i++;
+            }
+            i++;
+            return result;
+
+        }
+    }
+
+    function isHex(char) {
+        return (
+          (char >= "0" && char <= "9") ||
+          (char.toLowerCase() >= "a" && char.toLowerCase() <= "f")
+        );
+      }
+
+    
     //Handle Functions:
     function handleComma(){
         if(str[i] !== ','){
@@ -118,5 +167,11 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
         i++;
     }
 
+    //Skip functions:
+    function skipWS(){
+        while (str[i]===" "|| str[i]==="\n"||str[i]==="\t"||str[i]==="\r"){
+            i++;
+        }
+    }
 
 }
