@@ -1,5 +1,4 @@
 
-
 //------- A proof of Concept JSON parser -------
 //--------------By Jacob Biggs------------------
 //Based on the railroad/syntax diagrams found at https://www.json.org/
@@ -13,7 +12,7 @@
 function parseJSON(str){ //Based on https://www.json.org/img/object.png 
     let i = 0; //Resets index to 0
 
-    //Parse child functions
+    //Parse functions
     function parseObject(){
         if(str[i]==='{'){
             
@@ -47,6 +46,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
         }
     }
 
+    //Based on diagram found at https://www.json.org/img/array.png
     function parseArray(){
         if (str[i]==='['){
             i++;
@@ -75,7 +75,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
         //then any of the following: "string", "number", "object", "array", "true", "false" or "null", and then end with a "whitespace":
         //Attempt to parse value as string, if not try other methods
         let value;
-        switch (true) {
+        switch (true) {  //TODO: change to nullish coalescing operator?? maybe??
             case (value = parseString()) !== null:
             break;
             case (value = parseNumber()) !== null:
@@ -88,7 +88,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             break;
             case (value = parseKeyword('false', false)) !== null:
             break;
-            case (value = parseKeyword('null', null)) !== null:
+            case (value = parseKeyword('null', null)) !== null: //These will only not return null when the data is correct, then breaks loop
             break;
         }
         
@@ -149,13 +149,18 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
           (char >= "0" && char <= "9") ||
           (char.toLowerCase() >= "a" && char.toLowerCase() <= "f")
         );
-      }
-
+    }
+    
+    //Based on diagram found at https://www.json.org/img/number.png
+    function parseNumber(){
+        //Check sign, 0, digits, fractionals then exponents.
+    }
+    
     
     //Handle Functions:
     function handleComma(){
         if(str[i] !== ','){
-            throw new Error("Invalid Input. Expected ','.");
+            throw new Error("Invalid Input. Expected ','."); 
         }
         i++;
     }
@@ -169,7 +174,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
 
     //Skip functions:
     function skipWS(){
-        while (str[i]===" "|| str[i]==="\n"||str[i]==="\t"||str[i]==="\r"){
+        while (str[i]===" "|| str[i]==="\n"||str[i]==="\t"||str[i]==="\r"){ //Checking for empty space and encoding. 
             i++;
         }
     }
