@@ -2,7 +2,7 @@
 
 //------- A proof of Concept JSON parser -------
 //--------------By Jacob Biggs------------------
-//Based on the railroad diagrams found at https://www.json.org/
+//Based on the railroad/syntax diagrams found at https://www.json.org/
 
 
 // Conventions:
@@ -60,11 +60,46 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
                 }
                 const value = parseValue(); //Parses next value in array
                 result.push(value); //Appends value onto result array
-                firstLoop=false; //Ensures no longer first loop
+                firstLoop = false; //Ensures no longer first loop
             }
             //move onto next character ("]")
             i++;
             return result;
+        }
+    }
+
+    function parseValue(){
+        //A value starts with "whitespace", 
+        skipWS();
+        //then any of the following: "string", "number", "object", "array", "true", "false" or "null", and then end with a "whitespace":
+        //Attempt to parse value as string, if not try other methods
+        let value;
+        switch (true) {
+            case (value = parseString()) !== null:
+            break;
+            case (value = parseNumber()) !== null:
+            break;
+            case (value = parseObject()) !== null:
+            break;
+            case (value = parseArray()) !== null:
+            break;
+            case (value = parseKeyword('true', true)) !== null:
+            break;
+            case (value = parseKeyword('false', false)) !== null:
+            break;
+            case (value = parseKeyword('null', null)) !== null:
+            break;
+        }
+        
+        skipWS(); //final whitespace after value
+        return value;
+    }
+
+    //Checks whether current str.slice(i) matches the key string, if so it will return keyword's value.
+    function parseKeyword(name,value){ 
+        if (str.slice(i,i+ name.length) === name){
+            i+= name.length;
+            return value;
         }
     }
 
