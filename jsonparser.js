@@ -12,6 +12,8 @@
 function parseJSON(str){ //Based on https://www.json.org/img/object.png 
     let i = 0; //Resets index to 0
 
+    return parseValue();
+
     //Parse functions
     function parseObject(){
         if(str[i]==='{'){
@@ -90,8 +92,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             break;
             case (value = parseKeyword('null', null)) !== null: //These will only not return null when the data is correct, then breaks loop
             break;
-        }
-        
+        }  
         skipWS(); //final whitespace after value
         return value;
     }
@@ -148,7 +149,6 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             }
             i++;
             return result;
-
         }
     }
 
@@ -161,9 +161,46 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
     
     //Based on diagram found at https://www.json.org/img/number.png
     function parseNumber(){
-        //Check sign, 0, digits, fractionals then exponents.
+        let initialIndex = i;
+        //Check sign, 0s, digits, fractionals then exponents.
+
+        //Whole part 
+        if (str[i] === "-"){ //Checks sign for negative
+            i++;  //Advances index
+        }
+        if (str[i] === "0"){ //Checks for 0 starting number
+            i++; 
+        } else if (str[i] >= "1"&& str[i <=9]){ //Checks next index value is within valid range
+            i++; 
+            while (str[i]>="0"&&str[i]<="9"){ //Continues until end of number or decimal/exponent
+                i++;
+            }
+        }
+        
+        //Decimal Part
+        if (str[i]==="."){ //Checks for decimal point
+            i++;
+            while (str[i]>="0"&&str[i]<="9"){ //Checks for fractional part after decimal
+                i++; //Advances index
+            }
+        }
+
+        //Exponent part
+        if(str[i]==="e" || str[i] ==="E"){ //Checks upper and lowercases
+            i++; //Advances onto 
+
+            if (str[i]==="+"||str[i]==="-"){
+                i++;
+            }
+            while (str[i]>="0"&&str[i]<="9"){
+                i++
+            }
+        }
+        
+        if(i>initialIndex){
+            return Number(str.slice(initialIndex,i));
+        }
     }
-    
     
     //Handle Functions:
     function handleComma(){
@@ -186,5 +223,6 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             i++;
         }
     }
-
 }
+
+parseJSON('{"title": "Engineering Degree Apprentice","company": "GE Aviation","location": "Bishops Cleeve, Cheltenham, UK","startDate": "September 2021","endDate": "January 2022","description": "Engineering Degree Apprentice for GE Aviation. Studying Computer & Electronics Engineering BEng. Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi animi voluptatum dolor nostrum? Iure recusandae nemo tempore ea minima unde."}');
