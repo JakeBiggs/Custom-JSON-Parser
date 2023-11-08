@@ -12,7 +12,9 @@
 function parseJSON(str){ //Based on https://www.json.org/img/object.png 
     let i = 0; //Resets index to 0
 
-    return parseValue();
+    const value = parseValue();
+    expectEndOfInput();
+    return value;
 
     //Parse functions
     function parseObject(){
@@ -22,18 +24,19 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             skipWS(); //skips whitespace 
 
             const result ={ }; //Initialises result as empty JS object.
+            
+            
             let firstLoop = true; //Sets true on first loop 
-
-            //if next char is not "}", we go to bath of string,WS,:,value...etc
-            while (str[i] !=='}'){
+            //if next char is not "}", we go to path of string,WS,:,value...etc
+            while (str[i] !=='}' && i<str.length){
                 if(!firstLoop){ //Not first loop as only appears before we start second loop.
-                    
                     //Handles when new section is added (e.g "key:value, ")
                     handleComma(); 
                     skipWS();
                 }
 
                 const key = parseString(); //Parses key names as strings
+                if (key === undefined){expectObjectKey();} //Handles object 
                 skipWS(); 
                 handleColon();
                 const value = parseValue(); //Parses value after key
@@ -42,6 +45,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
 
                 firstLoop = false; //Resets first loop to false
             }
+            expectNotEndOfInput("}") //Checks for early finish
             //move to next character (in this case "}")
             i++;
             return result; //returns result object 
@@ -56,7 +60,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             
             const result = [] //Initialises result as empty JS array.
             let firstLoop = true;
-            while (str[i]!==']'){
+            while (str[i]!==']' && i<str.length){
                 if(!firstLoop){
                     handleComma();
                 }
@@ -64,6 +68,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
                 result.push(value); //Appends value onto result array
                 firstLoop = false; //Ensures no longer first loop
             }
+            expectNotEndOfInput("]") //checks for early escape
             //move onto next character ("]")
             i++;
             return result;
@@ -76,6 +81,8 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
         skipWS();
         //then any of the following: "string", "number", "object", "array", "true", "false" or "null", and then end with a "whitespace":
         //Attempt to parse value as string, if not try other methods
+        
+        /*
         let value;
         switch (true) {  //TODO: change to nullish coalescing operator?? maybe??
             case (value = parseString()) !== null:
@@ -92,9 +99,24 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             break;
             case (value = parseKeyword('null', null)) !== null: //These will only not return null when the data is correct, then breaks loop
             break;
+            default:
+                skipWS(); //final whitespace after value
+                return value;
         }  
-        skipWS(); //final whitespace after value
+        */
+        
+       
+        const value =
+        parseString() ??
+        parseNumber() ??
+        parseObject() ??
+        parseArray() ??
+        parseKeyword("true", true) ??
+        parseKeyword("false", false) ??
+        parseKeyword("null", null);
+        skipWS()
         return value;
+        
     }
 
     //Checks whether current str.slice(i) matches the key string, if so it will return keyword's value.
@@ -134,19 +156,25 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
                             isHex(str[i+3]) &&
                             isHex(str[i+4]) &&
                             isHex(str[i+5]) 
-                        )
+                        ){
                         //Extracts hex code, converts into decimal integer,then into string. finally puts into result variable
                         result += String.fromCharCode(parseInt(str.slice(i+2,i+6),16)); 
                         i+=5; //Updates i to the end of hex code 
-                        
+                        } else{
+                            i+=2;
+                            expectEscapeUnicode(result);
+                        } 
+                    } else{
+                        expectEscapeCharacter(result);
                     }
                 }
                 else{ //If not special case
                     result += str[i] //Append current i to result
-                    i++; //Advance
+                    //i++; //Advance
                 }
                 i++;
             }
+            expectNotEndOfInput('"'); //Checks for incorrect EOS
             i++;
             return result;
         }
@@ -167,6 +195,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
         //Whole part 
         if (str[i] === "-"){ //Checks sign for negative
             i++;  //Advances index
+            expectDigit(str.slice(initialIndex,i)); //Error checks from start
         }
         if (str[i] === "0"){ //Checks for 0 starting number
             i++; 
@@ -180,6 +209,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
         //Decimal Part
         if (str[i]==="."){ //Checks for decimal point
             i++;
+            expectDigit(str.slice(initialIndex,i));
             while (str[i]>="0"&&str[i]<="9"){ //Checks for fractional part after decimal
                 i++; //Advances index
             }
@@ -192,6 +222,7 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             if (str[i]==="+"||str[i]==="-"){
                 i++;
             }
+            expectDigit(str.slice(initialIndex,i));
             while (str[i]>="0"&&str[i]<="9"){
                 i++
             }
@@ -204,16 +235,18 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
     
     //Handle Functions:
     function handleComma(){
-        if(str[i] !== ','){
-            throw new Error("Invalid Input. Expected ','."); 
-        }
+        //if(str[i] !== ','){
+            //throw new Error("Invalid Input. Expected ','."); 
+        //}
+        expectCharacter(",");
         i++;
     }
 
     function handleColon(){
-        if (str[i] !== ':'){
-            throw new Error("Invalid Input. Expected ':'.")
-        }
+        //if (str[i] !== ':'){
+            //throw new Error("Invalid Input. Expected ':'.")
+        //}
+        expectCharacter(":");
         i++;
     }
 
@@ -223,6 +256,87 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
             i++;
         }
     }
-}
 
-parseJSON('{"title": "Engineering Degree Apprentice","company": "GE Aviation","location": "Bishops Cleeve, Cheltenham, UK","startDate": "September 2021","endDate": "January 2022","description": "Engineering Degree Apprentice for GE Aviation. Studying Computer & Electronics Engineering BEng. Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi animi voluptatum dolor nostrum? Iure recusandae nemo tempore ea minima unde."}');
+    //Error Handling (doesnt work without):
+    function expectNotEndOfInput(expected){
+        if (i===str.length){
+            printCodeSnippet(`expecting a \`${expected}\` here`);
+            throw new Error("JSON_ERROR_0001 Unexpected End of Input");
+        }
+    }
+    function expectEndOfInput() {
+        if (i < str.length) {
+          printCodeSnippet("expecting to end here");
+          throw new Error("JSON_ERROR_0002 expected End of Input");
+        }
+      }
+    
+      function expectObjectKey() {
+        printCodeSnippet(`expecting object key here
+    
+    For example:
+    { "foo": "bar" }
+      ^^^^^`);
+        throw new Error("JSON_ERROR_0003 expecting JSON Key");
+      }
+    
+      function expectCharacter(expected) {
+        if (str[i] !== expected) {
+          printCodeSnippet(`expecting a \`${expected}\` here`);
+          throw new Error("JSON_ERROR_0004 Unexpected token");
+        }
+      }
+    
+      function expectDigit(numSoFar) {
+        if (!(str[i] >= "0" && str[i] <= "9")) {
+          printCodeSnippet(`JSON_ERROR_0005 expecting a digit here
+    
+    For example:
+    ${numSoFar}5
+    ${" ".repeat(numSoFar.length)}^`);
+          throw new Error("JSON_ERROR_0006 expecting a digit");
+        }
+      }
+    
+      function expectEscapeCharacter(strSoFar) {
+        printCodeSnippet(`JSON_ERROR_0007 expecting escape character
+    
+    For example:
+    "${strSoFar}\\n"
+    ${" ".repeat(strSoFar.length + 1)}^^
+    List of escape characters are: \\", \\\\, \\/, \\b, \\f, \\n, \\r, \\t, \\u`);
+        throw new Error("JSON_ERROR_0008 expecting an escape character");
+      }
+    
+      function expectEscapeUnicode(strSoFar) {
+        printCodeSnippet(`expect escape unicode
+    
+    For example:
+    "${strSoFar}\\u0123
+    ${" ".repeat(strSoFar.length + 1)}^^^^^^`);
+        throw new Error("JSON_ERROR_0009 expecting an escape unicode");
+      }
+    
+      function printCodeSnippet(message) {
+        const from = Math.max(0, i - 10); //sets from to maximum value between 0 and i-10
+        const trimmed = from > 0; //returns true if from is positive
+        const padding = (trimmed ? 4 : 0) + (i - from); //If trimmed, +4 to difference else padding = i-from
+        const snippet = [
+          (trimmed ? "... " : "") + str.slice(from, i + 1),
+          " ".repeat(padding) + "^",
+          " ".repeat(padding) + message
+        ].join("\n");
+        console.log(snippet);
+      }
+    }
+
+
+
+
+let parsed = parseJSON('{"title": "Engineering Degree Apprentice","company": "GE Aviation","location": "Bishops Cleeve, Cheltenham, UK","startDate": "September 2021","endDate": "January 2022","description": "Engineering Degree Apprentice for GE Aviation. Studying Computer & Electronics Engineering BEng. Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi animi voluptatum dolor nostrum? Iure recusandae nemo tempore ea minima unde."}'); 
+console.log(parsed.title);
+//console.log(parseJSON('{"title": "Engineering Degree Apprentice","company": "GE Aviation","location": "Bishops Cleeve, Cheltenham, UK","startDate": "September 2021","endDate": "January 2022","description": "Engineering Degree Apprentice for GE Aviation. Studying Computer & Electronics Engineering BEng. Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi animi voluptatum dolor nostrum? Iure recusandae nemo tempore ea minima unde."}'));
+
+
+//console.log(parseJSON('{"testnumber": 4}'));
+//console.log("Test!");
