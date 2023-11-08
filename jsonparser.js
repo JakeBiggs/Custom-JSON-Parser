@@ -9,6 +9,9 @@
 // handleSomething(): handle the characters when there, but not used in final output.
 // skipSomething(): ignores when characters are obsolete / could not be there.
 
+const fs = require("fs");
+const filepath = "projects.json";
+
 function parseJSON(str){ //Based on https://www.json.org/img/object.png 
     let i = 0; //Resets index to 0
 
@@ -333,10 +336,117 @@ function parseJSON(str){ //Based on https://www.json.org/img/object.png
 
 
 
-let parsed = parseJSON('{"title": "Engineering Degree Apprentice","company": "GE Aviation","location": "Bishops Cleeve, Cheltenham, UK","startDate": "September 2021","endDate": "January 2022","description": "Engineering Degree Apprentice for GE Aviation. Studying Computer & Electronics Engineering BEng. Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi animi voluptatum dolor nostrum? Iure recusandae nemo tempore ea minima unde."}'); 
-console.log(parsed.title);
-//console.log(parseJSON('{"title": "Engineering Degree Apprentice","company": "GE Aviation","location": "Bishops Cleeve, Cheltenham, UK","startDate": "September 2021","endDate": "January 2022","description": "Engineering Degree Apprentice for GE Aviation. Studying Computer & Electronics Engineering BEng. Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi animi voluptatum dolor nostrum? Iure recusandae nemo tempore ea minima unde."}'));
+let parsedJOB = parseJSON('{"title": "Engineering Degree Apprentice","company": "GE Aviation","location": "Bishops Cleeve, Cheltenham, UK","startDate": "September 2021","endDate": "January 2022","description": "Engineering Degree Apprentice for GE Aviation. Studying Computer & Electronics Engineering BEng. Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi animi voluptatum dolor nostrum? Iure recusandae nemo tempore ea minima unde."}'); 
+let parsedPROJ = parseJSON(`[{
+    "title": "Caelidh",
+    "description": "Ceilidh is a roguelike dungeon crawler game based on Jack the giant slayer from Celtic mythology. Players will take on the role of Jack as they navigate through procedurally generated dungeons, fighting off monsters and collecting treasure along with a range of cards to expand your abilities!.",
+    "url": "https://unitygroup16.itch.io/ceilidh",
+    "git": "https://github.com/JakeBiggs/Caelidh",
+    "skills": [
+        "C#",
+        "Unity",
+        "Arduino",
+        "LaTeX"
+    ],
+    "images": [
+    {   "id": "img1",
+        "url": "/images/caelidh.png",
+        "alt": "Caelidh Logo"
+    },
+    {
+        "id": "img2",
+        "url": "/images/caelidh_screenshot.png",
+        "alt": "Caelidh Gameplay Screenshot"
+    },
+    {
+        "id": "img3",
+        "url": "/images/caelidh_screenshot2.png",
+        "alt": "Caelidh Gameplay Screenshot 2."
+    }]
+},
+{
+    "title": "SpaceGame - Sensor Fusion",
+    "description": "Space Game is a space invader-style game, where the player navigates a spaceship using gyroscope and accelerometer data. The goal of the game is to avoidhazards, while shooting oncoming asteroids using a button. The game is designed to make the player think about orientation and maintain control over the ship. The use of real-world sensor data adds an immersive element to the gameplay that provides a unique experience for the player.",
+    "url": "https://unitygroup16.itch.io/ceilidh",
+    "git": "https://github.com/JakeBiggs/Caelidh",
+    "skills": [
+        "C#",
+        "Unity",
+        "Arduino",
+        "LaTeX"
+    ],
+    "images": [
+    {   "id": "img1",
+        "url": "/images/spacegame1.png",
+        "alt": "Caelidh Logo"
+    },
+    {
+        "id": "img2",
+        "url": "/images/spacegame2.png",
+        "alt": "Caelidh Gameplay Screenshot"
+    },
+    {
+        "id": "img3",
+        "url": "/images/caelidh_screenshot2.png",
+        "alt": "Caelidh Gameplay Screenshot 2."
+    }]
+},
+{
+    "title": "Caelidh",
+    "description": "Ceilidh is a roguelike dungeon crawler game based on Jack the giant slayer from Celtic mythology. Players will take on the role of Jack as they navigate through procedurally generated dungeons, fighting off monsters and collecting treasure along with a range of cards to expand your abilities!.",
+    "url": "https://unitygroup16.itch.io/ceilidh",
+    "git": "https://github.com/JakeBiggs/Caelidh",
+    "skills": [
+        "C#",
+        "Unity",
+        "Arduino",
+        "LaTeX"
+    ],
+    "images": [
+    {   "id": "img1",
+        "url": "/images/caelidh_screenshot2.png",
+        "alt": "Caelidh Logo"
+    },
+    {
+        "id": "img2",
+        "url": "/images/caelidh_screenshot.png",
+        "alt": "Caelidh Gameplay Screenshot"
+    },
+    {
+        "id": "img3",
+        "url": "/images/caelidh_screenshot2.png",
+        "alt": "Caelidh Gameplay Screenshot 2."
+    }]
+},
+{
+    "title": "SpaceGame - Sensor Fusion",
+    "description": "Space Game is a space invader-style game, where the player navigates a spaceship using gyroscope and accelerometer data. The goal of the game is to avoidhazards, while shooting oncoming asteroids using a button. The game is designed to make the player think about orientation and maintain control over the ship. The use of real-world sensor data adds an immersive element to the gameplay that provides a unique experience for the player.",
+    "url": "https://unitygroup16.itch.io/ceilidh",
+    "git": "https://github.com/JakeBiggs/Caelidh",
+    "skills": [
+        "C#",
+        "Unity",
+        "Arduino",
+        "LaTeX"
+    ],
+    "images": [
+    {   "id": "img1",
+        "url": "/images/spacegame2.png",
+        "alt": "Caelidh Logo"
+    },
+    {
+        "id": "img2",
+        "url": "/images/spacegame2.png",
+        "alt": "Caelidh Gameplay Screenshot"
+    },
+    {
+        "id": "img3",
+        "url": "/images/caelidh_screenshot2.png",
+        "alt": "Caelidh Gameplay Screenshot 2."
+    }]
+}]`);
 
 
-//console.log(parseJSON('{"testnumber": 4}'));
-//console.log("Test!");
+data = parseJSON(fs.readFileSync(filepath, 'utf-8'));
+//console.log(parsedPROJ[0].skills[1]);
+console.log(data[0].title);
